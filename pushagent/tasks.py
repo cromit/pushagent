@@ -3,27 +3,28 @@ import os
 import random
 from pushagent.service import celery
 from pushagent.message import *
-import pushagent.apnsmanger
 import gevent
 
-class abc(object):
-    def __init__(self):
-        self._val = 1
-        print "class initialized %s" % os.getpid()
-
-abc_instance = abc()
-
 @celery.task
-def send(device_id, message):
+def send(target_id, message):
+    from pushagent.service import apns_pool
+    session = apns_pool.get_session()
+    try:
+        session.push(target_id, message)
+    except Exception as err:
+        print "Task::Send - err [%s]" % err
+        raise
+
+    apns_pool.return_session(session)
     '''
     apns_session = pushagent.apnmanager.get_session()
     apns_session.push(device_id, message)
     pushagent.apnsmanager.return_session(apns_session)
-    '''
     sleep_time = random.random() * 5
     print "[%s] Send sleep %s" % (os.getpid(), sleep_time)
     gevent.sleep(sleep_time)
     print "[%s] Send wokeup" % os.getpid()
+    '''
 
     return 
 
@@ -59,6 +60,3 @@ def B(i):
 def pow2(i):
     return i ** 2
 
-@celery.task()
-def collect_apns_feedback():
-    return True

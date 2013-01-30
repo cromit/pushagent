@@ -1,19 +1,22 @@
+import struct
 import gevent.ssl as ssl
 from gevent.queue import Queue
+from gevent.socket import *
 
 import message
 
-class APNSPool(object):
-    def __init__(self, addr, key_file, cert_file, connections_num=3):
+class APNSPushSessionPool(object):
+    def __init__(self, addr, key_file, cert_file):
         self._connection_queue = Queue()
         self._addr = addr
         self._key_file = key_file
         self._cert_file = cert_file
 
-    def start(self):
-        conn = APNSConnector(self._addr, self._key_file, self._cert_file)
-        self._connection_queue.put(conn)
-        conn.check_connection()
+    def start(self, concurrency=3):
+        for x in range(0, concurrency):
+            conn = APNSPushSession(self._addr, self._key_file, self._cert_file)
+            self._connection_queue.put(conn)
+            conn.check_connection()
 
     def get_session(self):
         conn = self._connection_queue.get()
@@ -30,18 +33,6 @@ class APNSConnector(object):
         self._addr = addr
         self._key_file = key_file 
         self._cert_file = cert_file
-        '''
-		self._feedback_connection = None
-		self._sandbox = sandbox
-		self._send_queue = Queue()
-		self._error_queue = Queue()
-		self._feedback_queue = Queue()
-		self._send_greenlet = None
-		self._error_greenlet = None
-		self._feedback_greenlet = None
-
-		self._send_queue_cleared = Event()
-        '''
 
     def check_connection(self):
         if self._connection == None:
@@ -50,24 +41,55 @@ class APNSConnector(object):
                 self._key_file,
                 self._cert_file,
                 ssl_version=ssl.PROTOCOL_SSLv3)
-            sock.connect_ex(tuple(self._addr.split(':')))
+            host, port  = self._addr.split(':')
+            sock.connect_ex((host, int(port)))
             self._connection = sock
 
-    def send(self, message):
-        # Send a push notification
-        '''
-        if not isinstance(message, PushMessage):
-        raise ValueError, u"Message object should be a child of PushMessage."
-        '''
+    def close(self):
+        print "Close connection"
+        self._connection.close()
+        self._connection = None
 
+class APNSPushSession(APNSConnector):
+    def push(self, target_id, message):
+        # Send a push notification
+        from pushagent.message import APushMessage
+        if not isinstance(message, APushMessage):
+            raise ValueError, u"Message object should be a child of PushMessage."
+
+        message._token = target_id.decode("hex")
+        #print "Actual Sending %s" % str(message)
         try:
-            self._connection.send(str(msg))
+            self._connection.send(str(message))
         except Exception as err:
             self._connection.close()
             self._connection = None
+            print "Send exception %s" % err
             raise err
+        print "Sent message"
+
+class APNSFeedbackSubscriber(APNSConnector):
+    def start(self):
+        self.check_connection()
+
+        import gevent
+        gevent.spawn(self.receive_feedback)
         
+    def receive_feedback(self):
+        print "Receiving..."
+        while True:
+            try:
+                msg = self._connection.recv(4 + 2 + 32)
+                if len(msg) < 38:
+                    return
+                data = struct.unpack("!IH32s", msg)
+                print "Received data [%s]" % data
+            except Exception as err:
+                self._connection.close()
+                self._connection = None
+                print "Recv exception %s" % err
+                raise err
 
-
+        print "Receive end"
 
 

@@ -20,7 +20,7 @@ APNS_CA_CERT_FILE       = "./entrust_2048_ca.cer"
 APNS_CERT_FILE          = "./mycert.pem"
 APNS_KEY_FILE           = "./mykey.pem"
 APNS_PUSH_GATEWAY_URL   = "gateway.sandbox.push.apple.com:2195"
-FEEDBACK_GATEWAY_URL    = "feedback.sandbox.push.apple.com:2196"
+APNS_FEEDBACK_GATEWAY_URL    = "feedback.sandbox.push.apple.com:2196"
 
 ## GCM Configurations 
 GCM_CA_CERT_FILE        = "./Equifax_Secure_Certificate_Authority.pem"
@@ -29,10 +29,10 @@ GCM_PUSH_GATEWAY_URL    = "https://android.googleapis.com/gcm/send"
 
 ## Scheduled Task Settings for APNS feedback
 CELERYBEAT_SCHEDULE = {
-    'runs-every-hour': {
+    'collect_feedback': {
         'task': 'pushagent.tasks.add',
         'schedule': timedelta(seconds=60*60),
-        'args': (16, 16)
+        'args': (1, 2)
     }
 }
 
