@@ -27,36 +27,3 @@ def send(target_id, message):
     '''
 
     return 
-
-@celery.task
-def add(x, y):
-    global abc_instance
-    print "PID %s abc %s abc.val %s" % (os.getpid(), abc_instance, abc_instance._val)
-    abc_instance._val = random.random() * 10 
-    print "==> PID %s abc %s abc.val %s" % (os.getpid(), abc_instance, abc_instance._val)
-    return x + y
-
-@celery.task
-def mul(x, y):
-    return x * y
-
-@celery.task
-def xsum(numbers):
-    return sum(numbers)
-
-
-@celery.task()
-def A(how_many):
-    from celery import group
-    res = group(add.s(i, i) for i in xrange(how_many))()
-
-    return 1
-
-@celery.task()
-def B(i):
-    return pow2.delay(i)
-
-@celery.task()
-def pow2(i):
-    return i ** 2
-

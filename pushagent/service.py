@@ -14,6 +14,7 @@ apns_subscriber = None
 def on_worker_init(sender=None, conf=None, **kwds):
     global apns_pool, apns_subscriber
     print "worker init"
+
     from pushagent.apnsmanager import APNSPushSessionPool
     apns_pool = APNSPushSessionPool(agent_conf.APNS_PUSH_GATEWAY_URL, agent_conf.APNS_KEY_FILE, agent_conf.APNS_CERT_FILE)
     apns_pool.start()
