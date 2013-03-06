@@ -9,18 +9,22 @@ print "Celery configured"
 
 apns_pool = None
 apns_subscriber = None
+feedback_storage = None
 
 @worker_init.connect
 def on_worker_init(sender=None, conf=None, **kwds):
-    global apns_pool, apns_subscriber
+    global apns_pool, apns_subscriber, feedback_storage
     print "worker init"
 
     from pushagent.apnsmanager import APNSPushSessionPool
     apns_pool = APNSPushSessionPool(agent_conf.APNS_PUSH_GATEWAY_URL, agent_conf.APNS_KEY_FILE, agent_conf.APNS_CERT_FILE)
     apns_pool.start()
 
+    from pushagent.udevice import UDeviceStorageFactory
+    feedback_storage = UDeviceStorageFactory.create(agent_conf.UDEVICE_STORE_TYPE, agent_conf.UDEVICE_STORE_PATH)
+
     from pushagent.apnsmanager import APNSFeedbackSubscriber
-    apns_subscriber = APNSFeedbackSubscriber(agent_conf.APNS_FEEDBACK_GATEWAY_URL, agent_conf.APNS_KEY_FILE, agent_conf.APNS_CERT_FILE)
+    apns_subscriber = APNSFeedbackSubscriber(agent_conf.APNS_FEEDBACK_GATEWAY_URL, agent_conf.APNS_KEY_FILE, agent_conf.APNS_CERT_FILE, agent_conf.APNS_FEEDBACK_CHECK_PERIOD, feedback_storage)
     apns_subscriber.start()
 
 

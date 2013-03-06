@@ -14,8 +14,9 @@ def send(target_id, message):
     except Exception as err:
         print "Task::Send - err [%s]" % err
         raise
+    finally:
+        apns_pool.return_session(session)
 
-    apns_pool.return_session(session)
     '''
     apns_session = pushagent.apnmanager.get_session()
     apns_session.push(device_id, message)
