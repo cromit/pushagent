@@ -21,6 +21,8 @@ APNS_CERT_FILE          = "./mycert.pem"
 APNS_KEY_FILE           = "./mykey.pem"
 APNS_PUSH_GATEWAY_URL   = "gateway.sandbox.push.apple.com:2195"
 APNS_FEEDBACK_GATEWAY_URL    = "feedback.sandbox.push.apple.com:2196"
+#APNS_FEEDBACK_GATEWAY_URL    = "127.0.0.1:6000"
+APNS_FEEDBACK_CHECK_PERIOD = 60
 
 ## GCM Configurations 
 GCM_CA_CERT_FILE        = "./Equifax_Secure_Certificate_Authority.pem"
@@ -38,6 +40,6 @@ CELERYBEAT_SCHEDULE = {
 
 CELERY_TIMEZONE = 'UTC'
 
-## Keep Unregistered devices information
-UDEVICE_STORE = "csv"
-UDEVICE_STORE_FILE ="./unregistered_devices.csv"
+## Keep Unregistered devices information (sqlite)
+UDEVICE_STORE_TYPE = "sqlite"
+UDEVICE_STORE_PATH ="./unregistered_devices.db"
