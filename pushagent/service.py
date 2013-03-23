@@ -9,6 +9,7 @@ print "Celery configured"
 
 apns_pool = None
 apns_subscriber = None
+gcm_pool = None
 feedback_storage = None
 
 @worker_init.connect
@@ -26,6 +27,10 @@ def on_worker_init(sender=None, conf=None, **kwds):
     from pushagent.apnsmanager import APNSFeedbackSubscriber
     apns_subscriber = APNSFeedbackSubscriber(agent_conf.APNS_FEEDBACK_GATEWAY_URL, agent_conf.APNS_KEY_FILE, agent_conf.APNS_CERT_FILE, agent_conf.APNS_FEEDBACK_CHECK_PERIOD, feedback_storage)
     apns_subscriber.start()
+
+    from pushagent.gcmmanager import GCMPushSessionPool
+    gcm_pool = GCMPushSessionPool(agent_conf.GCM_PUSH_GATEWAY_URL, agent_conf.GCM_API_KEY)
+    gcm_pool.start()
 
 
 '''

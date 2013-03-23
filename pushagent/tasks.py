@@ -6,7 +6,7 @@ from pushagent.message import *
 import gevent
 
 @celery.task
-def send(target_id, message):
+def send_ios(target_id, message):
     from pushagent.service import apns_pool
     session = apns_pool.get_session()
     try:
@@ -28,3 +28,16 @@ def send(target_id, message):
     '''
 
     return 
+
+@celery.task
+def send_android(target_id, message):
+    from pushagent.service import gcm_pool
+    session = gcm_pool.get_session()
+    try:
+        session.push(target_id, message)
+    except Exception as err:
+        print "Task::Send - err [%s]" % err
+        raise
+    finally:
+        gcm_pool.return_session(session)
+

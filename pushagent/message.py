@@ -54,8 +54,7 @@ class APushMessage(PushMessage):
             32, self._token, length, encoded)
 
 class GPushMessage(PushMessage):
-    def __init__(self, device_id, alert=None, badge=None, sound=None, identifier=0, expiry=None, extra=None):
+    def __init__(self, device_ids, alert=None, sound=None, identifier=0, expiry=None, extra=None):
+        self._device_ids = device_ids
         pass
 
-    def send(self):
-        pass
